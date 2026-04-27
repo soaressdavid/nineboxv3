@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") 
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  role      String    @default("user") // "admin", "manager", "employee"
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  manager   Manager?
+  employee  Employee?
+
+  @@map("users")
+}
+
+model Manager {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique
+  name           String
+  email          String    @unique
+  registrationId String    @unique // RA do gestor
+  company        String
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employees Employee[]
+  evaluations Evaluation[]
+
+  @@map("managers")
+}
+
+model Employee {
+  id                Int       @id @default(autoincrement())
+  managerId         Int
+  userId            Int?      @unique
+  name              String
+  email             String    @unique
+  registrationId    String    @unique // RA (número de registro)
+  company           String
+  active            Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  manager           Manager   @relation(fields: [managerId], references: [id])
+  evaluationParticipations EvaluationParticipant[]
+  accessCodes       AccessCode[]
+  responses         Response[]
+
+  @@index([managerId])
+  @@map("employees")
+}
+
+model Competency {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  type        String    // "technical", "behavioral", "leadership"
+  description String
+  levelIdeal  String
+  levelGood   String
+  levelAverage String
+  levelNeedsImprovement String
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  evaluationCompetencies EvaluationCompetency[]
+  responses     Response[]
+
+  @@map("competencies")
+}
+
+model Evaluation {
+  id            Int       @id @default(autoincrement())
+  managerId     Int
+  name          String
+  type          String    @default("employee") // "employee" ou "manager"
+  status        String    @default("draft") // "draft", "active", "closed", "cancelled"
+  company       String
+  startDate     DateTime
+  endDate       DateTime
+  description   String
+  closingText   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  manager       Manager   @relation(fields: [managerId], references: [id])
+  participants  EvaluationParticipant[]
+  competencies  EvaluationCompetency[]
+  accessCodes   AccessCode[]
+  responses     Response[]
+
+  @@index([managerId])
+  @@map("evaluations")
+}
+
+model EvaluationParticipant {
+  id            Int       @id @default(autoincrement())
+  evaluationId  Int
+  employeeId    Int
+
+  evaluation    Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([evaluationId, employeeId])
+  @@map("evaluation_participants")
+}
+
+model EvaluationCompetency {
+  id            Int       @id @default(autoincrement())
+  evaluationId  Int
+  competencyId  Int
+
+  evaluation    Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  competency    Competency @relation(fields: [competencyId], references: [id], onDelete: Cascade)
+
+  @@unique([evaluationId, competencyId])
+  @@map("evaluation_competencies")
+}
+
+model Response {
+  id            Int       @id @default(autoincrement())
+  evaluationId  Int
+  employeeId    Int
+  competencyId  Int
+  response      String    // Valor/Nível da resposta
+  observation   String?
+  submittedAt   DateTime  @default(now())
+
+  evaluation    Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  employee      Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  competency    Competency @relation(fields: [competencyId], references: [id], onDelete: Cascade)
+
+  @@map("responses")
+}
+
+model AccessCode {
+  id            Int       @id @default(autoincrement())
+  code          String    @unique
+  evaluationId  Int
+  employeeId    Int
+  used          Boolean   @default(false)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  evaluation    Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  employee      Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@map("access_codes")
+}

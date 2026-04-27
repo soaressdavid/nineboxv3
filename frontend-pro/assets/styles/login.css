@@ -1,0 +1,148 @@
+body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+    margin: 0; 
+    padding: 0; 
+  }
+
+  .conteudo {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .navbar {
+    background-color: #1a237e;
+    color: white;
+    padding: 15px 30px;
+    margin-bottom: 50px;
+  }
+
+  .nav-container h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: white;
+  }
+
+  .card-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+  }
+
+  .user-image {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .user-image img {
+    width: 120px;
+    height: 120px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #1a237e;
+    color: white;
+    margin-top: auto;
+  }
+  
+  .login-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 40px 60px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  .login-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .login-header h1 {
+    font-size: 1.5rem;
+    color: #1a237e;
+  }
+  .login-header .bi {
+    font-size: 3rem;
+    color: #1a237e;
+  }
+  .form-check-inline {
+    display: flex;
+    justify-content: center;
+  }
+  .btn-login {
+    background-color: #1a237e;
+    color: #ffffff;
+    padding: 12px 30px;
+    border-radius: 5px; 
+    display: block; 
+    margin: 20px auto; 
+    text-align: center; 
+    border: none;
+    width: 150px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .btn-login:hover {
+    background-color: #0d153a;
+  }
+
+  .form-label {
+    margin-top: 15px;
+    font-size: 16px;
+    display: block;
+    text-align: left;
+    font-weight: 500;
+  }
+  
+  .form-control {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    font-size: 16px;
+  }
+
+  .forgot-password {
+    text-align: left;
+    margin-top: 10px;
+  }
+
+  .forgot-password a {
+    color: #1a237e;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .forgot-password a:hover {
+    text-decoration: underline;
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    font-size: 16px;
+  }
+
+  #recuperacao-container {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+  }
+
+  #recuperacao-container label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
