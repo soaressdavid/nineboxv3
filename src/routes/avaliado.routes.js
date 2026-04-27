@@ -1,0 +1,12 @@
+const express = require('express');
+const avaliadoController = require('../controllers/avaliado.controller');
+
+const router = express.Router();
+
+router.get('/', avaliadoController.listar);
+router.get('/:ra', avaliadoController.buscarPorra);
+router.post('/', avaliadoController.criar);
+router.put('/:ra', avaliadoController.atualizar);
+router.delete('/:ra', avaliadoController.remover);
+
+module.exports = router;
