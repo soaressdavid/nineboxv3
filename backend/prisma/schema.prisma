@@ -28,7 +28,7 @@ model Manager {
   userId         Int       @unique
   name           String
   email          String    @unique
-  registrationId String    @unique // RA do gestor
+  registrationId String    @unique // RA do gestor - usado para buscar/identificar
   company        String
   active         Boolean   @default(true)
   createdAt      DateTime  @default(now())
@@ -47,7 +47,7 @@ model Employee {
   userId            Int?      @unique
   name              String
   email             String    @unique
-  registrationId    String    @unique // RA (número de registro)
+  registrationId    String    @unique // RA - usado para buscar/identificar
   company           String
   active            Boolean   @default(true)
   createdAt         DateTime  @default(now())
