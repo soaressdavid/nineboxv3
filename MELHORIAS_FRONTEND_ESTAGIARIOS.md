@@ -41,10 +41,17 @@ function validarEmail(email) {
   return regex.test(email);
 }
 
-// Função para validar CPF
+// Função para validar CPF (usado para Gestores)
 function validarCPF(cpf) {
   const cpfLimpo = cpf.replace(/\D/g, '');
   return cpfLimpo.length === 11;
+}
+
+// Função para validar RA (Registro Acadêmico - usado para Gestores e Colaboradores)
+function validarRA(ra) {
+  const raLimpo = ra.replace(/\D/g, '');
+  // RA geralmente tem entre 6 e 12 dígitos
+  return raLimpo.length >= 6 && raLimpo.length <= 12;
 }
 
 // Função para mostrar erro
@@ -77,8 +84,8 @@ function limparErro(campo) {
   input.style.borderColor = '';
 }
 
-// Exemplo de uso no formulário
-function validarFormulario(event) {
+// Exemplo de uso no formulário de Gestor
+function validarFormularioGestor(event) {
   event.preventDefault();
   let valido = true;
   
@@ -100,13 +107,51 @@ function validarFormulario(event) {
     limparErro('email');
   }
   
-  // Validar CPF
-  const cpf = document.getElementById('cpf').value;
-  if (!validarCPF(cpf)) {
-    mostrarErro('cpf', 'CPF deve ter 11 dígitos');
+  // Validar RA (Registro Acadêmico do Gestor)
+  const ra = document.getElementById('ra').value;
+  if (!validarRA(ra)) {
+    mostrarErro('ra', 'RA deve ter entre 6 e 12 dígitos');
     valido = false;
   } else {
-    limparErro('cpf');
+    limparErro('ra');
+  }
+  
+  if (valido) {
+    // Enviar formulário
+    enviarFormulario();
+  }
+}
+
+// Exemplo de uso no formulário de Colaborador
+function validarFormularioColaborador(event) {
+  event.preventDefault();
+  let valido = true;
+  
+  // Validar nome
+  const nome = document.getElementById('nome').value;
+  if (!nome || nome.trim().length < 3) {
+    mostrarErro('nome', 'Nome deve ter no mínimo 3 caracteres');
+    valido = false;
+  } else {
+    limparErro('nome');
+  }
+  
+  // Validar email
+  const email = document.getElementById('email').value;
+  if (!validarEmail(email)) {
+    mostrarErro('email', 'Email inválido');
+    valido = false;
+  } else {
+    limparErro('email');
+  }
+  
+  // Validar RA (Registro Acadêmico do Colaborador)
+  const ra = document.getElementById('ra').value;
+  if (!validarRA(ra)) {
+    mostrarErro('ra', 'RA deve ter entre 6 e 12 dígitos');
+    valido = false;
+  } else {
+    limparErro('ra');
   }
   
   if (valido) {
@@ -458,14 +503,29 @@ Quando o usuário digita CPF ou telefone, ele não sabe se precisa colocar ponto
 Adicionar máscaras automáticas em campos de CPF, telefone e data.
 
 **O que fazer:**
-- Máscara de CPF (000.000.000-00)
+- Máscara de RA (apenas números, 6-12 dígitos)
+- Máscara de CPF (se ainda for usado em algum lugar)
 - Máscara de telefone ((00) 00000-0000)
 - Máscara de data (DD/MM/AAAA)
 - Aplicar em todos os formulários
 
 **Exemplo de implementação:**
 ```javascript
-// Máscara de CPF
+// Máscara de RA (Registro Acadêmico - apenas números)
+function mascaraRA(input) {
+  input.addEventListener('input', function(e) {
+    let valor = e.target.value.replace(/\D/g, '');
+    
+    // Limita a 12 dígitos
+    if (valor.length > 12) {
+      valor = valor.substring(0, 12);
+    }
+    
+    e.target.value = valor;
+  });
+}
+
+// Máscara de CPF (mantida para compatibilidade se necessário)
 function mascaraCPF(input) {
   input.addEventListener('input', function(e) {
     let valor = e.target.value.replace(/\D/g, '');
@@ -528,6 +588,11 @@ function mascaraData(input) {
 
 // Aplicar máscaras ao carregar página
 document.addEventListener('DOMContentLoaded', () => {
+  // Máscara de RA (Registro Acadêmico)
+  const raInputs = document.querySelectorAll('input[name="ra"]');
+  raInputs.forEach(input => mascaraRA(input));
+  
+  // Máscara de CPF (se ainda for usado)
   const cpfInputs = document.querySelectorAll('input[name="cpf"]');
   cpfInputs.forEach(input => mascaraCPF(input));
   
@@ -626,10 +691,23 @@ Ajustar layout para funcionar bem em dispositivos móveis.
 
 ```html
 <!-- Adicionar data-label nas células da tabela -->
+<!-- Exemplo para Gestores -->
 <tr>
   <td data-label="Nome">João Silva</td>
-  <td data-label="CPF">123.456.789-00</td>
+  <td data-label="RA">202312345</td>
   <td data-label="Email">joao@email.com</td>
+  <td data-label="Empresa">Empresa XYZ</td>
+  <td data-label="Ações">
+    <button>Editar</button>
+  </td>
+</tr>
+
+<!-- Exemplo para Colaboradores -->
+<tr>
+  <td data-label="Nome">Maria Santos</td>
+  <td data-label="RA">202398765</td>
+  <td data-label="Email">maria@email.com</td>
+  <td data-label="Gestor">João Silva</td>
   <td data-label="Ações">
     <button>Editar</button>
   </td>
@@ -775,6 +853,38 @@ function inicializarPaginacao(itens) {
 
 ## 📊 Resumo de Distribuição
 
+### 🔄 IMPORTANTE: Mudanças do Backend que Afetam o Frontend
+
+**Campo RA substituiu CPF:**
+O backend agora usa **RA (Registro Acadêmico)** ao invés de CPF para identificar gestores e colaboradores.
+
+**O que você precisa fazer em TODAS as tarefas:**
+
+1. **Trocar campos CPF por RA** em todos os formulários
+2. **Atualizar validações** para aceitar RA (6-12 dígitos, apenas números)
+3. **Atualizar máscaras** para RA (sem formatação, apenas números)
+4. **Atualizar tabelas** para mostrar RA ao invés de CPF
+5. **Atualizar requisições** para enviar `ra` ao invés de `cpf`
+
+**Exemplo de mudança:**
+```javascript
+// ANTES
+const dados = { nome, cpf, email, empresa };
+
+// DEPOIS
+const dados = { nome, ra, email, empresa };
+```
+
+**Novos endpoints disponíveis:**
+- `GET /api/gestores?search=nome` - Buscar gestores
+- `GET /api/avaliacoes/estatisticas` - Estatísticas gerais
+- `GET /api/respostas/relatorio/:evaluationId/:employeeId` - Relatório individual
+- `GET /api/avaliacoes/pendentes/:ra` - Avaliações pendentes
+
+---
+
+## 📊 Distribuição de Tarefas
+
 | Estagiário | Área | Tarefas | Tempo Total |
 |------------|------|---------|-------------|
 | **Estagiário 1** | Validações e Feedback | 3 tarefas | 14-18 horas |
@@ -875,3 +985,89 @@ Peça ajuda se:
 ---
 
 **Boa sorte e bom trabalho! 🚀**
+
+---
+
+## 📖 Referência Rápida: Backend vs Frontend
+
+### Campos e Nomenclatura
+
+| Backend (Prisma) | Frontend (HTML/JS) | Tipo | Descrição |
+|------------------|-------------------|------|-----------|
+| `registrationId` | `ra` | string | RA do gestor ou colaborador (6-12 dígitos) |
+| `name` | `nome` | string | Nome completo |
+| `email` | `email` | string | Email válido |
+| `company` | `empresa` | string | Nome da empresa |
+| `active` | `ativo` | boolean | Se está ativo no sistema |
+| `managerId` | `gestorId` | number | ID do gestor responsável |
+| `startDate` | `dataInicio` | date | Data de início da avaliação |
+| `endDate` | `dataFim` | date | Data de fim da avaliação |
+
+### Endpoints Principais
+
+| Método | Endpoint | Descrição | Body/Params |
+|--------|----------|-----------|-------------|
+| GET | `/api/gestores` | Listar gestores | `?search=nome&empresa=xyz` |
+| POST | `/api/gestores` | Criar gestor | `{ nome, ra, email, empresa, senha }` |
+| GET | `/api/gestores/:id` | Buscar gestor | - |
+| PUT | `/api/gestores/:id` | Atualizar gestor | `{ nome, ra, email, empresa }` |
+| DELETE | `/api/gestores/:id` | Deletar gestor | - |
+| GET | `/api/avaliados` | Listar colaboradores | `?search=nome&empresa=xyz` |
+| POST | `/api/avaliados` | Criar colaborador | `{ nome, ra, email, empresa, gestorId }` |
+| GET | `/api/avaliacoes/estatisticas` | Estatísticas gerais | - |
+| GET | `/api/respostas/relatorio/:evalId/:empId` | Relatório individual | - |
+| GET | `/api/avaliacoes/pendentes/:ra` | Avaliações pendentes | - |
+
+### Validações Necessárias
+
+| Campo | Validação | Mensagem de Erro |
+|-------|-----------|------------------|
+| Nome | Mínimo 3 caracteres | "Nome deve ter no mínimo 3 caracteres" |
+| Email | Formato válido | "Email inválido" |
+| RA | 6-12 dígitos numéricos | "RA deve ter entre 6 e 12 dígitos" |
+| Empresa | Obrigatório | "Empresa é obrigatória" |
+| Data Início | Anterior à data fim | "Data de início deve ser anterior à data de fim" |
+| Data Fim | Não pode ser no passado | "Data de fim não pode ser no passado" |
+
+### Status de Avaliação
+
+| Status | Descrição | Ações Permitidas |
+|--------|-----------|------------------|
+| `draft` | Rascunho | Editar, Deletar, Ativar |
+| `active` | Ativa | Responder, Visualizar, Encerrar |
+| `closed` | Encerrada | Visualizar Relatórios |
+| `cancelled` | Cancelada | Visualizar |
+
+### Tipos de Avaliação
+
+| Tipo | Descrição | Quem Responde |
+|------|-----------|---------------|
+| `employee` | Autoavaliação | Próprio colaborador |
+| `manager` | Avaliação do Gestor | Gestor do colaborador |
+
+### Tipos de Competência
+
+| Tipo | Descrição | Exemplos |
+|------|-----------|----------|
+| `technical` | Técnica | Programação, Excel, Inglês |
+| `behavioral` | Comportamental | Comunicação, Trabalho em equipe |
+| `leadership` | Liderança | Tomada de decisão, Gestão de pessoas |
+
+---
+
+## 🎯 Checklist Final: Adaptação RA
+
+Antes de entregar, verifique se você:
+
+- [ ] Trocou todos os campos `cpf` por `ra` nos formulários HTML
+- [ ] Atualizou todas as validações de CPF para validações de RA
+- [ ] Removeu máscaras de CPF e adicionou validação simples de RA (apenas números)
+- [ ] Atualizou todas as tabelas para mostrar coluna "RA" ao invés de "CPF"
+- [ ] Modificou todas as requisições fetch para enviar `ra` ao invés de `cpf`
+- [ ] Atualizou funções de renderização para usar `gestor.ra` ou `colaborador.ra`
+- [ ] Testou criar um gestor com RA
+- [ ] Testou criar um colaborador com RA
+- [ ] Testou buscar por RA
+- [ ] Verificou se as mensagens de erro mencionam "RA" e não "CPF"
+
+---

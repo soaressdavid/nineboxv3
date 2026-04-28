@@ -685,27 +685,6 @@ async function listGestores(search = '') {
 
 ---
 
-## 🎯 Sugestão de Ordem
-
-### Semana 1
-1. **Pessoa 1**: Validações básicas (1.1)
-2. **Pessoa 2**: Busca por nome (2.1)
-3. **Pessoa 3**: Estatísticas de avaliações (3.1)
-
-### Semana 2
-1. **Pessoa 1**: Mensagens de erro (1.2)
-2. **Pessoa 2**: Filtro por empresa (2.2)
-3. **Pessoa 3**: Relatório individual (3.2)
-
-### Semana 3
-1. **Pessoa 1**: Validação de datas (1.3)
-2. **Pessoa 2**: Ordenação (2.3)
-3. **Pessoa 3**: Avaliações pendentes (3.3) e Ranking (3.4)
-
-### Semana 4
-1. **Pessoa 3**: Adicionar contadores (3.5)
-
----
 
 ## 📚 Recursos de Aprendizado
 
