@@ -1,5 +1,5 @@
 const gestorRepository = require('../repositories/gestor.repository');
-const normalizarra = require('../utils/normalizarra');
+const { normalizarRa, validarRa } = require('../utils/ra');
 
 // GET /gestores
 async function listar() {

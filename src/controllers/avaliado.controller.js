@@ -13,7 +13,7 @@ async function listar(req, res, next) {
 }
 
 // GET /avaliados/:ra
-async function buscarPor(req, res, next) {
+async function buscarPorRa(req, res, next) {
     try {
         const { ra } = req.params;
         const avaliado = await avaliadoService.buscarPor(ra);
@@ -67,7 +67,7 @@ async function remover(req, res, next) {
 
 module.exports = {
   listar,
-  buscarPor,
+  buscarPorRa,
   criar,
   atualizar,
   remover
