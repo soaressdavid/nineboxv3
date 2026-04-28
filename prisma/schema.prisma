@@ -70,7 +70,7 @@ model evaluation_competencies {
   id           Int                @id @default(autoincrement())
   evaluationId Int
   competencyId Int
-  audience     EvaluationAudience
+  audience     EvaluationAudience @default(EMPLOYEE)
 
   competencies competencies @relation(fields: [competencyId], references: [id], onDelete: Cascade)
   evaluations  evaluations  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
