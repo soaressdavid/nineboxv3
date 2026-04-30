@@ -1,38 +1,44 @@
 const gestorService = require('../services/gestor.service');
-const prisma = require('../lib/prisma');
 
-// GET /gestores
-async function listar(req, res) {
+async function listarGestores(req, res, next) {
   try {
-    const gestores = await prisma.managers.findMany();
-    res.status(200).json(gestores);
+    const gestores = await gestorService.listar();
+    return res.status(200).json(gestores);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erro ao listar gestores.' });
+    next(error);
   }
 }
 
-// POST /gestores
+async function buscarPorRa(req, res, next) {
+  try {
+    const { ra } = req.params;
+    const gestor = await gestorService.buscarPorRa(ra);
+    return res.status(200).json(gestor);
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function criar(req, res, next) {
   try {
     const gestor = await gestorService.criar(req.body);
     return res.status(201).json({
       message: 'Gestor criado com sucesso!',
-      gestor
+      gestor,
     });
   } catch (error) {
     next(error);
   }
 }
 
-// PUT /gestores/:ra
 async function atualizar(req, res, next) {
   try {
     const { ra } = req.params;
     const gestor = await gestorService.atualizar(ra, req.body);
+
     return res.status(200).json({
       message: 'Gestor atualizado com sucesso!',
-      gestor
+      gestor,
     });
   } catch (error) {
     next(error);
@@ -40,7 +46,8 @@ async function atualizar(req, res, next) {
 }
 
 module.exports = {
-  listar,
+  listarGestores,
+  buscarPorRa,
   criar,
-  atualizar
+  atualizar,
 };

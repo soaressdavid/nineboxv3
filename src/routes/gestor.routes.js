@@ -3,7 +3,8 @@ const gestorController = require('../controllers/gestor.controller');
 
 const router = express.Router();
 
-router.get('/', gestorController.listar);
+router.get('/', gestorController.listarGestores);
+router.get('/:ra', gestorController.buscarPorRa);
 router.post('/', gestorController.criar);
 router.put('/:ra', gestorController.atualizar);
 

@@ -1,54 +1,69 @@
 const gestorRepository = require('../repositories/gestor.repository');
 const { normalizarRa, validarRa } = require('../utils/ra');
 
-// GET /gestores
 async function listar() {
-    const gestores = await gestorRepository.findAll();
+  const gestores = await gestorRepository.findAll();
 
-    if(!gestores.length) {
-        const error = new Error('Nenhum gestor encontrado');
-        error.statusCode = 404;
-        throw error;
-    }
+  if (!gestores.length) {
+    const error = new Error('Nenhum gestor encontrado.');
+    error.statusCode = 404;
+    throw error;
+  }
 
-    return gestores;
-}    
-
-// POST /gestores
-async function criar(data) {
-    const {nome, ra, genero, data_nascimento, empresa, email} = data;
-
-    if (!nome || !ra || !genero || !data_nascimento || !empresa || !email) {
-        const error = new Error('Todos os campos são obrigatórios.');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    const raNormalizado = normalizarra(ra);
-    
-    const gestorExistente = await gestorRepository.findByra(raNormalizado);
-    if (gestorExistente) {
-        const error = new Error('ra já cadastrado.');
-        error.statusCode = 400;
-        throw error;
-    }
-    
-    const gestor = await gestorRepository.create({
-        nome,
-        ra: raNormalizado,
-        genero,
-        data_nascimento,
-        empresa,
-        email
-    });
-    return gestor;
+  return gestores;
 }
 
-// PUT /gestores/:ra
-async function atualizar(ra, data) {
-  const { nome, genero, dataNascimento, empresa, email } = data;
+async function buscarPorRa(ra) {
+  const raNormalizado = normalizarRa(ra);
 
-  const raNormalizado = normalizarra(ra);
+  const gestor = await gestorRepository.findByra(raNormalizado);
+
+  if (!gestor) {
+    const error = new Error('Gestor não encontrado.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return gestor;
+}
+
+async function criar(data) {
+  const { nome, ra, empresa, email, senha, ativo } = data;
+
+  if (!nome || !ra || !empresa || !email) {
+    const error = new Error('nome, ra, empresa e email são obrigatórios.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const raNormalizado = normalizarRa(ra);
+
+  if (!validarRa(raNormalizado)) {
+    const error = new Error('RA inválido.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const gestorExistente = await gestorRepository.findByra(raNormalizado);
+
+  if (gestorExistente) {
+    const error = new Error('Este RA já está cadastrado.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return gestorRepository.create({
+    nome,
+    ra: raNormalizado,
+    empresa,
+    email,
+    senha,
+    ativo,
+  });
+}
+
+async function atualizar(ra, data) {
+  const raNormalizado = normalizarRa(ra);
 
   const gestorExistente = await gestorRepository.findByra(raNormalizado);
 
@@ -58,17 +73,12 @@ async function atualizar(ra, data) {
     throw error;
   }
 
-  await gestorRepository.update(raNormalizado, {
-    nome,
-    genero,
-    dataNascimento,
-    empresa,
-    email
-  });
+  return gestorRepository.update(raNormalizado, data);
 }
 
 module.exports = {
-    listar,
-    criar,
-    atualizar
+  listar,
+  buscarPorRa,
+  criar,
+  atualizar,
 };

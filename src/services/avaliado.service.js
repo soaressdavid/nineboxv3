@@ -1,18 +1,19 @@
-const avaliadoRepository = require('../repositories/avaliado.repository.js');
+const avaliadoRepository = require('../repositories/avaliado.repository');
 const gestorRepository = require('../repositories/gestor.repository');
-const { normalizarra } = require('../utils/ra');
+const { normalizarRa, validarRa } = require('../utils/ra');
 
 async function listar({ raGestor }) {
   if (raGestor) {
-    const gestorraNormalizado = normalizarra(raGestor);
-    return avaliadoRepository.findByGestorra(gestorraNormalizado);
+    const raGestorNormalizado = normalizarRa(raGestor);
+    return avaliadoRepository.findByGestorra(raGestorNormalizado);
   }
 
   return avaliadoRepository.findAll();
 }
 
-async function buscarPorra(ra) {
-  const raNormalizado = normalizarra(ra);
+async function buscarPorRa(ra) {
+  const raNormalizado = normalizarRa(ra);
+
   const avaliado = await avaliadoRepository.findByra(raNormalizado);
 
   if (!avaliado) {
@@ -25,28 +26,26 @@ async function buscarPorra(ra) {
 }
 
 async function criar(data) {
-  const {
-    nome,
-    ra,
-    genero,
-    dataNascimento,
-    empresa,
-    ra_gestor,
-    email
-  } = data;
+  const { nome, ra, empresa, ra_gestor, email, senha, ativo } = data;
 
-  if (!nome || !ra || !genero || !dataNascimento || !empresa || !ra_gestor || !email) {
-    const error = new Error('Todos os campos são obrigatórios.');
+  if (!nome || !ra || !empresa || !ra_gestor || !email) {
+    const error = new Error('nome, ra, empresa, ra_gestor e email são obrigatórios.');
     error.statusCode = 400;
     throw error;
   }
 
-  const raNormalizado = normalizarra(ra);
-  const raGestorNormalizado = normalizarra(ra_gestor);
+  const raNormalizado = normalizarRa(ra);
+  const raGestorNormalizado = normalizarRa(ra_gestor);
+
+  if (!validarRa(raNormalizado) || !validarRa(raGestorNormalizado)) {
+    const error = new Error('RA inválido.');
+    error.statusCode = 400;
+    throw error;
+  }
 
   const avaliadoExistente = await avaliadoRepository.findByra(raNormalizado);
   if (avaliadoExistente) {
-    const error = new Error('Este ra já está cadastrado.');
+    const error = new Error('Este RA já está cadastrado.');
     error.statusCode = 400;
     throw error;
   }
@@ -58,39 +57,19 @@ async function criar(data) {
     throw error;
   }
 
-  await avaliadoRepository.create({
+  return avaliadoRepository.create({
     nome,
     ra: raNormalizado,
-    genero,
-    dataNascimento,
     empresa,
     ra_gestor: raGestorNormalizado,
-    email
+    email,
+    senha,
+    ativo,
   });
-
-  return {
-    nome,
-    ra: raNormalizado,
-    genero,
-    dataNascimento,
-    empresa,
-    ra_gestor: raGestorNormalizado,
-    email
-  };
 }
 
 async function atualizar(ra, data) {
-  const {
-    nome,
-    genero,
-    dataNascimento,
-    empresa,
-    ra_gestor,
-    email
-  } = data;
-
-  const raNormalizado = normalizarra(ra);
-  const raGestorNormalizado = normalizarra(ra_gestor);
+  const raNormalizado = normalizarRa(ra);
 
   const avaliadoExistente = await avaliadoRepository.findByra(raNormalizado);
   if (!avaliadoExistente) {
@@ -99,25 +78,24 @@ async function atualizar(ra, data) {
     throw error;
   }
 
-  const gestorExistente = await gestorRepository.findByra(raGestorNormalizado);
-  if (!gestorExistente) {
-    const error = new Error('Gestor informado não existe.');
-    error.statusCode = 400;
-    throw error;
+  if (data.ra_gestor) {
+    const raGestorNormalizado = normalizarRa(data.ra_gestor);
+    const gestorExistente = await gestorRepository.findByra(raGestorNormalizado);
+
+    if (!gestorExistente) {
+      const error = new Error('Gestor informado não existe.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    data.ra_gestor = raGestorNormalizado;
   }
 
-  await avaliadoRepository.update(raNormalizado, {
-    nome,
-    genero,
-    dataNascimento,
-    empresa,
-    ra_gestor: raGestorNormalizado,
-    email
-  });
+  return avaliadoRepository.update(raNormalizado, data);
 }
 
 async function remover(ra) {
-  const raNormalizado = normalizarra(ra);
+  const raNormalizado = normalizarRa(ra);
 
   const avaliadoExistente = await avaliadoRepository.findByra(raNormalizado);
   if (!avaliadoExistente) {
@@ -127,12 +105,14 @@ async function remover(ra) {
   }
 
   await avaliadoRepository.deleteByra(raNormalizado);
+
+  return { message: 'Avaliado removido com sucesso.' };
 }
 
 module.exports = {
   listar,
-  buscarPorra,
+  buscarPorRa,
   criar,
   atualizar,
-  remover
+  remover,
 };

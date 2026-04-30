@@ -1,17 +1,26 @@
-const competenciaRepository = require('../repositories/competencia.repository.js');
+const competenciaRepository = require('../repositories/competencia.repository');
 
-const PUBLICOS_VALIDOS = ['colaborador', 'gestor'];
+function normalizarAudience(valor) {
+  if (!valor) return null;
+
+  const upper = String(valor).trim().toUpperCase();
+
+  if (upper === 'COLABORADOR' || upper === 'EMPLOYEE') return 'EMPLOYEE';
+  if (upper === 'GESTOR' || upper === 'MANAGER') return 'MANAGER';
+
+  return null;
+}
 
 function normalizarPayload(data) {
   return {
     competencia: data.competencia,
-    competenciaDe: data.competenciaDe || data.competencia_de,
+    competenciaDe: normalizarAudience(data.competenciaDe || data.competencia_de),
     tipo: data.tipo,
     descricao: data.descricao,
     criterio1: data.criterio1 || data.ideal,
     criterio2: data.criterio2 || data.bom,
     criterio3: data.criterio3 || data.mediano,
-    criterio4: data.criterio4 || data.a_melhorar
+    criterio4: data.criterio4 || data.a_melhorar,
   };
 }
 
@@ -24,7 +33,7 @@ function validarCamposObrigatorios(payload) {
     criterio1,
     criterio2,
     criterio3,
-    criterio4
+    criterio4,
   } = payload;
 
   if (
@@ -41,22 +50,21 @@ function validarCamposObrigatorios(payload) {
     error.statusCode = 400;
     throw error;
   }
-
-  if (!PUBLICOS_VALIDOS.includes(competenciaDe)) {
-    const error = new Error('O campo competenciaDe deve ser "colaborador" ou "gestor".');
-    error.statusCode = 400;
-    throw error;
-  }
 }
 
 async function listar({ competenciaDe, search }) {
-  if (competenciaDe && !PUBLICOS_VALIDOS.includes(competenciaDe)) {
+  const audience = competenciaDe ? normalizarAudience(competenciaDe) : undefined;
+
+  if (competenciaDe && !audience) {
     const error = new Error('Filtro competenciaDe inválido.');
     error.statusCode = 400;
     throw error;
   }
 
-  return competenciaRepository.findAll({ competenciaDe, search });
+  return competenciaRepository.findAll({
+    competenciaDe: audience,
+    search,
+  });
 }
 
 async function buscarPorId(id) {
@@ -75,29 +83,24 @@ async function criar(data) {
   const payload = normalizarPayload(data);
   validarCamposObrigatorios(payload);
 
-  const competenciaExistente = await competenciaRepository.findByNomeAndPublico(
+  const existente = await competenciaRepository.findByNomeAndPublico(
     payload.competencia,
     payload.competenciaDe
   );
 
-  if (competenciaExistente) {
+  if (existente) {
     const error = new Error('Já existe uma competência com esse nome para esse público.');
     error.statusCode = 400;
     throw error;
   }
 
-  const result = await competenciaRepository.create(payload);
-
-  return {
-    id: result.insertId,
-    ...payload
-  };
+  return competenciaRepository.create(payload);
 }
 
 async function atualizar(id, data) {
-  const competenciaExistente = await competenciaRepository.findById(id);
+  const existente = await competenciaRepository.findById(id);
 
-  if (!competenciaExistente) {
+  if (!existente) {
     const error = new Error('Competência não encontrada.');
     error.statusCode = 404;
     throw error;
@@ -117,23 +120,25 @@ async function atualizar(id, data) {
     throw error;
   }
 
-  await competenciaRepository.update(id, payload);
+  return competenciaRepository.update(id, payload);
 }
 
 async function remover(id) {
-  const competenciaExistente = await competenciaRepository.findById(id);
+  const existente = await competenciaRepository.findById(id);
 
-  if (!competenciaExistente) {
+  if (!existente) {
     const error = new Error('Competência não encontrada.');
     error.statusCode = 404;
     throw error;
   }
 
   await competenciaRepository.deleteById(id);
+
+  return { message: 'Competência removida com sucesso.' };
 }
 
-async function listarPorAvaliacaoColaboradores(idAvaliacao) {
-  const competencias = await competenciaRepository.findByAvaliacaoColaboradores(idAvaliacao);
+async function listarPorAvaliacaoColaboradores(evaluationId) {
+  const competencias = await competenciaRepository.findByAvaliacaoColaboradores(evaluationId);
 
   if (!competencias.length) {
     const error = new Error('Nenhuma competência encontrada para esta avaliação.');
@@ -144,8 +149,8 @@ async function listarPorAvaliacaoColaboradores(idAvaliacao) {
   return competencias;
 }
 
-async function listarPorAvaliacaoGestor(idAvaliacao) {
-  const competencias = await competenciaRepository.findByAvaliacaoGestor(idAvaliacao);
+async function listarPorAvaliacaoGestor(evaluationId) {
+  const competencias = await competenciaRepository.findByAvaliacaoGestor(evaluationId);
 
   if (!competencias.length) {
     const error = new Error('Nenhuma competência encontrada para esta avaliação.');
@@ -163,5 +168,5 @@ module.exports = {
   atualizar,
   remover,
   listarPorAvaliacaoColaboradores,
-  listarPorAvaliacaoGestor
+  listarPorAvaliacaoGestor,
 };

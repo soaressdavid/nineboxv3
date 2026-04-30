@@ -3,7 +3,7 @@ const avaliadoController = require('../controllers/avaliado.controller');
 
 const router = express.Router();
 
-router.get('/', avaliadoController.listar);
+router.get('/', avaliadoController.listarAvaliados);
 router.get('/:ra', avaliadoController.buscarPorRa);
 router.post('/', avaliadoController.criar);
 router.put('/:ra', avaliadoController.atualizar);
